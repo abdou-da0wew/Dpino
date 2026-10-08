@@ -1,0 +1,22 @@
+name: Publish Flatpak
+on:
+  push:
+    tags: ['v*']
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        manifest-path: packaging/flatpak/dpino.json
+        bundle: dpino.flatpak
+    - name: Publish PR to Flathub
+      env:
+        FLATHUB_REPO: flathub/io.abdou.dpino
+        GITHUB_TOKEN: ${{ secrets.FLATHUB_GITHUB_TOKEN }}
+      run: |
+        echo "Use flutpak generate + flat-manager deploy (see docs/PUBLISHING.md) for full automation."

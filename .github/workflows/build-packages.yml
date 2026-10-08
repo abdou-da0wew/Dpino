@@ -49,8 +49,6 @@ jobs:
           name: dpino-deb
           path: build/deb/*.deb
 
-  build-snap:
-    name: Build Snap Package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,9 +59,7 @@ jobs:
           toolchain: stable
           override: true
       
-      - name: Install snapcraft
         run: |
-          sudo snap install snapcraft --classic
       
       - name: Build binary
         run: cargo build --release
@@ -73,17 +69,11 @@ jobs:
           chmod +x scripts/copy_icons.sh
           ./scripts/copy_icons.sh
       
-      - name: Build Snap package
         run: |
-          chmod +x scripts/build_snap.sh
           VERSION=${GITHUB_REF#refs/tags/v}
-          ./scripts/build_snap.sh ${VERSION}
       
-      - name: Upload Snap artifact
         uses: actions/upload-artifact@v3
         with:
-          name: dpino-snap
-          path: build/snap/*.snap
 
   build-appimage:
     name: Build AppImage
@@ -164,7 +154,6 @@ jobs:
 
   release:
     name: Create Release
-    needs: [build-deb, build-snap, build-appimage, build-rpm]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -178,7 +167,6 @@ jobs:
         with:
           files: |
             artifacts/dpino-deb/*.deb
-            artifacts/dpino-snap/*.snap
             artifacts/dpino-appimage/*.AppImage
             artifacts/dpino-rpm/*.rpm
           draft: false

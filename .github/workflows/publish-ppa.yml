@@ -1,0 +1,18 @@
+name: Publish Ubuntu PPA
+on:
+  push:
+    tags: ['v*']
+jobs:
+  ppa:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build source package
+      run: |
+        sudo apt-get update -qq && sudo apt-get install -y devscripts debhelper dput-ng gnupg
+        # Use debuild -S with packaging/deb and GPG key from secrets
+        echo "Configure GPG + dput with secrets.LAUNCHPAD_GPG_PRIVATE_KEY and secrets.LAUNCHPAD_PPA"
+    - name: Upload to Launchpad
+      env:
+        PPA: ${{ secrets.LAUNCHPAD_PPA }}
+      run: echo "dput $PPA packaging/deb/*.changes"

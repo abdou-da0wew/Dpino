@@ -26,6 +26,15 @@ impl AppImagePackage {
         let temp_dir = tempfile::tempdir()
             .context("Failed to create temporary directory")?;
 
+        // SECURITY: AppImage binary execution is required for extraction but runs untrusted code.
+        // Set DPINO_SAFE_MODE=0 only if you explicitly trust this package.
+        if std::env::var("DPINO_SAFE_MODE").is_ok() && std::env::var("DPINO_SAFE_MODE").unwrap_or_default() != "0" {
+            anyhow::bail!("AppImage extraction blocked by DPINO_SAFE_MODE (untrusted binary execution). Unset env or set DPINO_SAFE_MODE=0 to allow trusted sources only.");
+        }
+
+        // Restrict temp extraction directory
+        let _ = std::fs::set_permissions(temp_dir.path(), std::fs::Permissions::from_mode(0o700));
+
         let extract_dir = temp_dir.path().join("squashfs-root");
 
         let output = Command::new(&abs_path)
@@ -129,6 +138,15 @@ impl AppImagePackage {
         let temp_dir = tempfile::tempdir()
             .context("Failed to create temporary directory")?;
 
+        // SECURITY: AppImage binary execution is required for extraction but runs untrusted code.
+        // Set DPINO_SAFE_MODE=0 only if you explicitly trust this package.
+        if std::env::var("DPINO_SAFE_MODE").is_ok() && std::env::var("DPINO_SAFE_MODE").unwrap_or_default() != "0" {
+            anyhow::bail!("AppImage extraction blocked by DPINO_SAFE_MODE (untrusted binary execution). Unset env or set DPINO_SAFE_MODE=0 to allow trusted sources only.");
+        }
+
+        // Restrict temp extraction directory
+        let _ = std::fs::set_permissions(temp_dir.path(), std::fs::Permissions::from_mode(0o700));
+
         let extract_dir = temp_dir.path().join("squashfs-root");
 
         let output = Command::new(&abs_path)
@@ -181,3 +199,4 @@ impl crate::formats::PackageFormat for AppImagePackage {
     }
 }
 
+use std::os::unix::fs::PermissionsExt;

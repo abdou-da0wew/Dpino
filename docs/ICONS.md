@@ -50,8 +50,6 @@ Icons are automatically included in all package formats:
 - All sizes included in package structure
 - Installed to `/usr/share/icons/hicolor/*/apps/`
 
-### Snap
-- Icons included via `snapcraft.yaml`
 - Organized in `share/icons/hicolor/*/apps/`
 - All sizes included
 

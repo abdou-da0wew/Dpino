@@ -54,6 +54,13 @@ impl Installer {
             Path::new("/usr/share/icons/hicolor/256x256/apps").to_path_buf()
         };
 
+        if !user {
+            // System-wide install requires root; fail clearly if directory not writable
+            if let Err(e) = std::fs::metadata(&icons_dir) {
+                log::warn!("System icons dir not accessible (needs root?): {}", e);
+            }
+        }
+
         utils::ensure_dir(&icons_dir)?;
 
         let icon_name = icon_path.file_name()

@@ -18,8 +18,6 @@ sed -i "s/^version = \".*\"/version = \"${VERSION}\"/" "${PROJECT_DIR}/Cargo.tom
 # Update DEB control
 sed -i "s/^Version:.*/Version: ${VERSION}/" "${PROJECT_DIR}/packaging/deb/DEBIAN/control"
 
-# Update snapcraft.yaml
-sed -i "s/^version:.*/version: '${VERSION}'/" "${PROJECT_DIR}/packaging/snap/snapcraft.yaml"
 
 # Update PKGBUILD
 sed -i "s/^pkgver=.*/pkgver=${VERSION}/" "${PROJECT_DIR}/packaging/aur/PKGBUILD"

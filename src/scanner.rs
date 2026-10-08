@@ -20,8 +20,19 @@ impl Scanner {
 
         for entry in WalkDir::new(path)
             .follow_links(false)
+            .max_depth(8)
             .into_iter()
             .filter_map(|e| e.ok())
+            .filter(|e| {
+                let p = e.path();
+                // Skip common non-package directories
+                if let Some(name) = p.file_name().and_then(|n| n.to_str()) {
+                    if name == ".git" || name == "target" || name == "node_modules" || name == "build" || name == ".idea" || name == ".vscode" {
+                        return false;
+                    }
+                }
+                true
+            })
         {
             let entry_path = entry.path();
 
@@ -46,6 +57,11 @@ impl Scanner {
 
                 found.push(metadata);
             }
+        }
+
+        // Batch save after scan completes
+        if let Err(e) = self.cache.save() {
+            log::warn!("Failed to save cache: {}", e);
         }
 
         Ok(found)

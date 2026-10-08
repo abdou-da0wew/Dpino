@@ -1,47 +1,18 @@
-name: Publish to AUR
-
+name: Publish AUR
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
-
+  push:
+    tags: ['v*']
 jobs:
-  publish-aur:
-    name: Update AUR Package
+  aur:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-      
-      - name: Clone AUR repository
-        run: |
-          git clone ssh://aur@aur.archlinux.org/dpino.git aur-repo
-      
-      - name: Update PKGBUILD
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          cd aur-repo
-          cp ../packaging/aur/PKGBUILD .
-          sed -i "s/pkgver=.*/pkgver=${VERSION}/" PKGBUILD
-          sed -i "s/pkgrel=.*/pkgrel=1/" PKGBUILD
-          # Update source URL
-          sed -i "s|source=.*|source=(\"${pkgname}-${pkgver}.tar.gz::https://github.com/abdou-da0wew/${pkgname}/archive/v${pkgver}.tar.gz\")|" PKGBUILD
-      
-      - name: Update .SRCINFO
-        run: |
-          cd aur-repo
-          makepkg --printsrcinfo > .SRCINFO
-      
-      - name: Commit and push
-        run: |
-          cd aur-repo
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add PKGBUILD .SRCINFO
-          git commit -m "Update to v${GITHUB_REF#refs/tags/v}" || exit 0
-          git push
-
+    - uses: actions/checkout@v4
+    - name: Update AUR package
+      uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+      with:
+        pkgname: dpino
+        pkgbuild: packaging/aur/PKGBUILD
+        updpkgsums: true
+        commit_username: "Release Bot"
+        commit_email: "bot@example.com"
+        ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}

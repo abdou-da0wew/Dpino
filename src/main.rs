@@ -7,7 +7,20 @@ use installer::Installer;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 
+fn setup_panic_hook() {
+    let original = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let _ = crossterm::terminal::disable_raw_mode();
+        let _ = crossterm::execute!(
+            std::io::stdout(),
+            crossterm::terminal::LeaveAlternateScreen
+        );
+        original(info);
+    }));
+}
+
 fn main() -> Result<()> {
+    setup_panic_hook();
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     let cli = Cli::parse();

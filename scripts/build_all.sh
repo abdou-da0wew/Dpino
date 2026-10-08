@@ -14,11 +14,7 @@ cargo build --release
 echo "Building Debian package..."
 "${PROJECT_DIR}/scripts/build_deb.sh" "${VERSION}"
 
-echo "Building Snap package..."
-if command -v snapcraft &> /dev/null; then
-    "${PROJECT_DIR}/scripts/build_snap.sh" "${VERSION}"
 else
-    echo "snapcraft not found, skipping Snap build"
 fi
 
 echo "Building Flatpak package..."

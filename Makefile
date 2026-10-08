@@ -1,4 +1,3 @@
-.PHONY: build test clean package deb snap flatpak appimage rpm all-packages help
 
 VERSION ?= 0.1.0
 ARCH ?= amd64
@@ -11,7 +10,6 @@ help:
 	@echo "  test           - Run tests"
 	@echo "  clean          - Clean build artifacts"
 	@echo "  deb            - Build Debian package"
-	@echo "  snap           - Build Snap package"
 	@echo "  flatpak        - Build Flatpak package"
 	@echo "  appimage       - Build AppImage"
 	@echo "  rpm            - Build RPM package"
@@ -34,8 +32,6 @@ clean:
 deb:
 	@./scripts/build_deb.sh $(VERSION) $(ARCH)
 
-snap:
-	@./scripts/build_snap.sh $(VERSION)
 
 flatpak:
 	@./scripts/build_flatpak.sh $(VERSION)

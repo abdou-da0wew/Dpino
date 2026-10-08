@@ -12,7 +12,6 @@ Build all packages at once:
 
 This will create packages in the `build/` directory:
 - `build/deb/dpino.deb` - Debian package
-- `build/snap/*.snap` - Snap package
 - `build/appimage/*.AppImage` - AppImage
 - `build/flatpak/build-dir/` - Flatpak build directory
 
@@ -40,33 +39,24 @@ sudo dpkg -i build/deb/dpino.deb
 2. Upload the source package
 3. Follow: https://help.launchpad.net/Packaging/PPA
 
-## 2️⃣ Snap
 
-**Target distros:** Any Linux with Snap installed
 
 ### Prerequisites
 
 ```bash
-sudo snap install snapcraft --classic
 ```
 
 ### Build
 
 ```bash
-./scripts/build_snap.sh 0.1.0
 ```
 
 ### Test Locally
 
 ```bash
-sudo snap install build/snap/dpino_0.1.0_amd64.snap --dangerous
 ```
 
-### Publish to Snap Store
 
-1. Create account at https://snapcraft.io/
-2. Register the snap name: `snapcraft register dpino`
-3. Upload: `snapcraft upload --release=edge dpino_0.1.0_amd64.snap`
 
 ## 3️⃣ Flatpak
 
@@ -233,7 +223,6 @@ Update version in:
 
 1. `Cargo.toml` - `version = "0.1.0"`
 2. `packaging/deb/DEBIAN/control` - `Version: 0.1.0`
-3. `packaging/snap/snapcraft.yaml` - `version: '0.1.0'`
 4. `packaging/aur/PKGBUILD` - `pkgver=0.1.0`
 5. `packaging/rpm/dpino.spec` - `Version: 0.1.0`
 6. `packaging/homebrew/dpino.rb` - URL and version
@@ -249,7 +238,6 @@ git push origin v0.1.0
 
 - [Debian packaging guide](https://www.debian.org/doc/manuals/maint-guide/)
 - [Launchpad PPA guide](https://help.launchpad.net/Packaging/PPA)
-- [Snapcraft docs](https://snapcraft.io/docs)
 - [Flatpak docs](https://docs.flatpak.org/en/latest/)
 - [Flathub app submission](https://github.com/flathub/flathub/wiki/App-Submission)
 - [Arch Wiki AUR submission](https://wiki.archlinux.org/title/AUR_submission_guidelines)

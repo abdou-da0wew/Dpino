@@ -58,7 +58,6 @@ Once the tag is pushed, GitHub Actions will automatically:
 
 1. **Build Packages** (`.github/workflows/build-packages.yml`)
    - Build Debian package
-   - Build Snap package
    - Build AppImage
    - Build RPM package
    - Create GitHub release with all artifacts
@@ -87,8 +86,6 @@ If you need to build packages manually:
 # Debian
 ./scripts/build_deb.sh 0.1.0 amd64
 
-# Snap
-./scripts/build_snap.sh 0.1.0
 
 # Flatpak
 ./scripts/build_flatpak.sh 0.1.0
@@ -108,11 +105,7 @@ make rpm VERSION=0.1.0
 2. Test: `sudo dpkg -i build/deb/dpino.deb`
 3. Upload to Launchpad PPA (if applicable)
 
-### Snap
 
-1. Build: `./scripts/build_snap.sh 0.1.0`
-2. Test: `sudo snap install build/snap/dpino_*.snap --dangerous`
-3. Publish: `snapcraft upload --release=stable dpino_*.snap`
 
 ### Flatpak
 

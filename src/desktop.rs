@@ -125,14 +125,14 @@ impl DesktopEntry {
         }
 
         Ok(Self {
-            name,
-            exec,
+            name: if name.is_empty() { "Unknown".to_string() } else { name },
+            exec: if exec.is_empty() { "/bin/false".to_string() } else { exec },
             icon,
             comment,
             categories,
             mime_types,
             terminal,
-            type_,
+            type_: if type_.is_empty() { "Application".to_string() } else { type_ },
         })
     }
 }

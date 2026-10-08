@@ -40,6 +40,7 @@ impl Default for PackageMetadata {
 pub struct PackageCache {
     cache_path: PathBuf,
     packages: HashMap<PathBuf, PackageMetadata>,
+    lock_path: PathBuf,
 }
 
 impl PackageCache {
@@ -47,32 +48,54 @@ impl PackageCache {
         let cache_dir = utils::get_xdg_data_home()?.join("dpino");
         utils::ensure_dir(&cache_dir)?;
         let cache_path = cache_dir.join("cache.json");
+        let lock_path = cache_dir.join("cache.lock");
         
         let mut cache = Self {
             cache_path,
             packages: HashMap::new(),
+            lock_path,
         };
         
         cache.load()?;
         Ok(cache)
+    }
+    
+    fn acquire_lock(&self) -> Result<std::fs::File> {
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&self.lock_path)
+            .context("Failed to acquire cache lock (another process may be writing)")?;
+        Ok(file)
+    }
+    
+    fn release_lock(&self, _file: std::fs::File) -> Result<()> {
+        std::fs::remove_file(&self.lock_path).ok();
+        Ok(())
     }
 
     pub fn load(&mut self) -> Result<()> {
         if self.cache_path.exists() {
             let content = std::fs::read_to_string(&self.cache_path)
                 .context("Failed to read cache file")?;
-            let entries: Vec<(String, PackageMetadata)> = serde_json::from_str(&content)
-                .unwrap_or_default();
-            
-            self.packages = entries
-                .into_iter()
-                .map(|(k, v)| (PathBuf::from(k), v))
-                .collect();
+            match serde_json::from_str::<Vec<(String, PackageMetadata)>>(&content) {
+                Ok(entries) => {
+                    self.packages = entries
+                        .into_iter()
+                        .map(|(k, v)| (PathBuf::from(k), v))
+                        .collect();
+                }
+                Err(e) => {
+                    log::warn!("Cache file corrupted ({}), starting fresh: {}", self.cache_path.display(), e);
+                    self.packages.clear();
+                }
+            }
         }
         Ok(())
     }
 
     pub fn save(&self) -> Result<()> {
+        let _lock = self.acquire_lock()?;
         let entries: Vec<(String, PackageMetadata)> = self.packages
             .iter()
             .map(|(k, v)| (k.to_string_lossy().to_string(), v.clone()))
@@ -84,6 +107,8 @@ impl PackageCache {
         std::fs::write(&self.cache_path, content)
             .context("Failed to write cache file")?;
         
+        // Lock released when _lock drops; clean up lock file
+        let _ = std::fs::remove_file(&self.lock_path);
         Ok(())
     }
 
@@ -93,7 +118,7 @@ impl PackageCache {
 
     pub fn insert(&mut self, path: PathBuf, metadata: PackageMetadata) -> Result<()> {
         self.packages.insert(path, metadata);
-        self.save()?;
+        // Do NOT auto-save here — batch writes via scanner or explicit save()
         Ok(())
     }
 
