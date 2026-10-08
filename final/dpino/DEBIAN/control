@@ -1,0 +1,8 @@
+Package: dpino
+Version: 0.1.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libc6 (>= 2.31)
+Maintainer: Abdou <aabdou911aydev@gmail.com>
+Description: Rust-powered package metadata extractor + installer + browser

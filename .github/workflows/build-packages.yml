@@ -1,0 +1,188 @@
+name: Build Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+        default: '0.1.0'
+
+jobs:
+  build-deb:
+    name: Build Debian Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev
+      
+      - name: Build binary
+        run: cargo build --release
+      
+      - name: Copy icons to final structure
+        run: |
+          chmod +x scripts/copy_icons.sh
+          ./scripts/copy_icons.sh
+      
+      - name: Build DEB package
+        run: |
+          chmod +x scripts/build_deb.sh
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ./scripts/build_deb.sh ${VERSION}
+      
+      - name: Upload DEB artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dpino-deb
+          path: build/deb/*.deb
+
+  build-snap:
+    name: Build Snap Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Install snapcraft
+        run: |
+          sudo snap install snapcraft --classic
+      
+      - name: Build binary
+        run: cargo build --release
+      
+      - name: Copy icons to final structure
+        run: |
+          chmod +x scripts/copy_icons.sh
+          ./scripts/copy_icons.sh
+      
+      - name: Build Snap package
+        run: |
+          chmod +x scripts/build_snap.sh
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ./scripts/build_snap.sh ${VERSION}
+      
+      - name: Upload Snap artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dpino-snap
+          path: build/snap/*.snap
+
+  build-appimage:
+    name: Build AppImage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Build binary
+        run: cargo build --release
+      
+      - name: Copy icons to final structure
+        run: |
+          chmod +x scripts/copy_icons.sh
+          ./scripts/copy_icons.sh
+      
+      - name: Build AppImage
+        run: |
+          chmod +x scripts/build_appimage.sh
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ./scripts/build_appimage.sh ${VERSION}
+      
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dpino-appimage
+          path: build/appimage/*.AppImage
+
+  build-rpm:
+    name: Build RPM Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Install RPM build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+      
+      - name: Build binary
+        run: cargo build --release
+      
+      - name: Copy icons to final structure
+        run: |
+          chmod +x scripts/copy_icons.sh
+          ./scripts/copy_icons.sh
+      
+      - name: Create source tarball
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          tar -czf dpino-${VERSION}.tar.gz --exclude='.git' --exclude='target' .
+      
+      - name: Build RPM package
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          mkdir -p ~/rpmbuild/{SOURCES,SPECS,RPMS}
+          cp dpino-${VERSION}.tar.gz ~/rpmbuild/SOURCES/
+          cp packaging/rpm/dpino.spec ~/rpmbuild/SPECS/
+          sed -i "s/Version:.*/Version: ${VERSION}/" ~/rpmbuild/SPECS/dpino.spec
+          rpmbuild -bb ~/rpmbuild/SPECS/dpino.spec
+      
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dpino-rpm
+          path: ~/rpmbuild/RPMS/x86_64/*.rpm
+
+  release:
+    name: Create Release
+    needs: [build-deb, build-snap, build-appimage, build-rpm]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/dpino-deb/*.deb
+            artifacts/dpino-snap/*.snap
+            artifacts/dpino-appimage/*.AppImage
+            artifacts/dpino-rpm/*.rpm
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

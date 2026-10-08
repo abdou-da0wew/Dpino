@@ -1,0 +1,41 @@
+# Maintainer: Abdou <aabdou911aydev@gmail.com>
+pkgname=dpino
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Rust-powered package metadata extractor + desktop entry installer + browser"
+arch=('x86_64')
+url="https://github.com/abdou-da0wew/dpino"
+license=('MIT' 'Apache-2.0')
+depends=('glibc')
+makedepends=('rust' 'cargo')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/abdou-da0wew/${pkgname}/archive/v${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "${srcdir}/${pkgname}-${pkgver}"
+    cargo build --release --locked
+}
+
+package() {
+    cd "${srcdir}/${pkgname}-${pkgver}"
+    
+    # Install binary
+    install -Dm755 "target/release/dpino" "${pkgdir}/usr/bin/dpino"
+    
+    # Install desktop entry
+    install -Dm644 "final/dpino/usr/share/applications/dpino.desktop" \
+        "${pkgdir}/usr/share/applications/dpino.desktop"
+    
+    # Install man page
+    install -Dm644 "final/dpino/usr/share/man/man1/dpino.1" \
+        "${pkgdir}/usr/share/man/man1/dpino.1"
+    
+    # Install all icons
+    for size in 16x16 22x22 24x24 32x32 48x48 64x64 128x128 256x256 512x512; do
+        if [ -f "final/dpino/usr/share/icons/hicolor/${size}/apps/dpino.png" ]; then
+            install -Dm644 "final/dpino/usr/share/icons/hicolor/${size}/apps/dpino.png" \
+                "${pkgdir}/usr/share/icons/hicolor/${size}/apps/dpino.png"
+        fi
+    done
+}
+

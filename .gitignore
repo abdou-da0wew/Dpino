@@ -1,0 +1,26 @@
+/target
+**/*.rs.bk
+Cargo.lock
+*.pdb
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.log
+
+# Build artifacts
+/build/
+*.deb
+*.snap
+*.AppImage
+*.rpm
+*.tar.gz
+
+# Packaging
+~/rpmbuild/
+aur-repo/
+
+# AppImage tools
+appimagetool.AppImage

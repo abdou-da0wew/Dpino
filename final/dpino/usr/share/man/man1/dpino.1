@@ -1,0 +1,262 @@
+.\" Manpage for dpino
+.\" Generated for dpino v0.1.0
+.TH DPINO 1 "December 2024" "v0.1.0" "dpino manual"
+.SH NAME
+dpino \- Rust-powered package metadata extractor + desktop entry generator + installer + browser
+.SH SYNOPSIS
+.B dpino
+[\fICOMMAND\fR] [\fIOPTIONS\fR]
+.PP
+.B dpino scan
+[\fB\-\-path\fR \fIPATH\fR] [\fB\-\-json\fR]
+.PP
+.B dpino inspect
+\fIPATH\fR
+.PP
+.B dpino list
+[\fB\-\-json\fR]
+.PP
+.B dpino extract
+\fIPATH\fR [\fB\-\-out\fR \fIDIR\fR]
+.PP
+.B dpino install-desktop
+\fIPATH\fR [\fB\-\-user\fR] [\fB\-\-dry-run\fR]
+.PP
+.B dpino uninstall
+\fIDESKTOP_ID\fR [\fB\-\-user\fR]
+.PP
+.B dpino refresh
+.PP
+.B dpino browse
+[\fB\-\-path\fR \fIPATH\fR]
+.SH DESCRIPTION
+.B dpino
+is a comprehensive tool for managing Debian packages (.deb), AppImages (.AppImage), and AppDir packages. It can scan directories for packages, extract metadata, generate Freedesktop-compliant desktop entries, install them to XDG directories, and provide an interactive TUI browser for package management.
+.PP
+dpino supports three package formats:
+.TP
+.B Debian packages (.deb)
+Extracts control.tar.* and data.tar.*, parses control files, extracts desktop entries and icons from packages, and auto-generates desktop entries if not present.
+.TP
+.B AppImage
+Uses \fB\-\-appimage-extract\fR to extract contents, reads desktop entries from extracted squashfs-root, extracts icons, and wraps Exec line with absolute path to AppImage.
+.TP
+.B AppDir
+Reads AppRun executable, reads included .desktop files, and extracts icons from usr/share/icons or local icons.
+.SH COMMANDS
+.SS scan
+Scan a directory for packages and extract their metadata.
+.TP
+\fB\-\-path\fR, \fB\-p\fR \fIPATH\fR
+Directory to scan for packages. Required.
+.TP
+\fB\-\-json\fR, \fB\-j\fR
+Output results as JSON instead of human-readable format.
+.PP
+Scans the specified directory recursively for .deb, .AppImage, and AppDir packages, extracts their metadata, and caches the results. The cache is stored in \fI~/.local/share/dpino/cache.json\fR.
+.SS inspect
+Inspect a single package file and display its metadata.
+.TP
+\fIPATH\fR
+Path to the package file to inspect. Required.
+.PP
+Extracts and displays all metadata from the specified package file, including name, version, maintainer, description, categories, icon path, exec command, and mimetypes. Output is always in JSON format.
+.SS list
+List all packages that have been scanned and cached.
+.TP
+\fB\-\-json\fR, \fB\-j\fR
+Output results as JSON instead of human-readable format.
+.PP
+Displays all packages that have been previously scanned and cached. The list includes package name, type, and source path.
+.SS extract
+Extract a package to a directory.
+.TP
+\fIPATH\fR
+Path to the package file to extract. Required.
+.TP
+\fB\-\-out\fR, \fB\-o\fR \fIDIR\fR
+Output directory where the package will be extracted. Required.
+.PP
+Extracts the contents of the package to the specified directory. For .deb packages, extracts the data.tar.* contents. For AppImage, extracts the squashfs-root. For AppDir, copies the entire directory structure.
+.SS install-desktop
+Install a desktop entry and icon for a package.
+.TP
+\fIPATH\fR
+Path to the package file to install. Required.
+.TP
+\fB\-\-user\fR, \fB\-u\fR
+Install for current user (default: true). If false, installs system-wide (requires root).
+.TP
+\fB\-\-dry-run\fR
+Perform a dry run without actually installing anything. Shows what would be installed.
+.PP
+Extracts metadata from the package, generates or uses the existing desktop entry, installs the desktop entry to \fI~/.local/share/applications\fR (or \fI/usr/share/applications\fR for system-wide), installs icons to \fI~/.local/share/icons\fR (or \fI/usr/share/icons\fR for system-wide), and refreshes the desktop database.
+.SS uninstall
+Uninstall a desktop entry.
+.TP
+\fIDESKTOP_ID\fR
+Desktop entry ID to uninstall (e.g., "myapp.desktop"). Required.
+.TP
+\fB\-\-user\fR, \fB\-u\fR
+Uninstall from user directory (default: true). If false, uninstalls from system directory (requires root).
+.PP
+Removes the specified desktop entry file and refreshes the desktop database. The desktop entry ID should match the filename (e.g., "myapp.desktop").
+.SS refresh
+Refresh the desktop database and cache.
+.PP
+Updates the desktop database using \fBupdate-desktop-database\fR and refreshes the package cache. This ensures that newly installed desktop entries are recognized by the desktop environment.
+.SS browse
+Launch the interactive TUI browser.
+.TP
+\fB\-\-path\fR, \fB\-p\fR \fIPATH\fR
+Optional directory to scan on startup before launching the TUI.
+.PP
+Launches a full-screen terminal user interface for browsing and managing packages. The TUI provides a package list, details view, and various actions.
+.SH TUI KEYBINDINGS
+When using the \fBbrowse\fR command, the following keybindings are available:
+.TP
+.B ↑/↓
+Navigate up and down in the package list.
+.TP
+.B Enter
+Inspect the selected package (shows detailed information).
+.TP
+.B i
+Install desktop entry for the selected package.
+.TP
+.B e
+Extract the selected package to /tmp/<package-name>.
+.TP
+.B d
+Delete the selected package from the cache.
+.TP
+.B r
+Refresh the package list.
+.TP
+.B q
+Quit the TUI.
+.SH ENVIRONMENT VARIABLES
+.TP
+.B HOME
+Used to determine the user's home directory for XDG data directories. Required.
+.TP
+.B RUST_LOG
+Controls logging verbosity. Set to "debug", "info", "warn", or "error". Default is "info".
+.SH FILES
+.TP
+\fI~/.local/share/dpino/cache.json\fR
+Package metadata cache file.
+.TP
+\fI~/.local/share/applications/\fR
+User desktop entries directory.
+.TP
+\fI~/.local/share/icons/\fR
+User icons directory.
+.TP
+\fI/usr/share/applications/\fR
+System desktop entries directory (requires root).
+.TP
+\fI/usr/share/icons/\fR
+System icons directory (requires root).
+.SH EXAMPLES
+.PP
+Scan a directory for packages:
+.RS
+.B dpino scan --path /path/to/packages
+.RE
+.PP
+Scan and output as JSON:
+.RS
+.B dpino scan --path /path/to/packages --json
+.RE
+.PP
+Inspect a Debian package:
+.RS
+.B dpino inspect /path/to/package.deb
+.RE
+.PP
+List all cached packages:
+.RS
+.B dpino list
+.RE
+.PP
+Extract a package:
+.RS
+.B dpino extract /path/to/package.deb --out /tmp/extracted
+.RE
+.PP
+Install desktop entry (dry run):
+.RS
+.B dpino install-desktop /path/to/package.deb --dry-run
+.RE
+.PP
+Install desktop entry for current user:
+.RS
+.B dpino install-desktop /path/to/package.deb --user
+.RE
+.PP
+Uninstall a desktop entry:
+.RS
+.B dpino uninstall myapp.desktop
+.RE
+.PP
+Launch TUI browser:
+.RS
+.B dpino browse
+.RE
+.PP
+Launch TUI browser and scan directory on startup:
+.RS
+.B dpino browse --path /path/to/packages
+.RE
+.SH EXIT STATUS
+.TP
+.B 0
+Success
+.TP
+.B 1
+General error (invalid arguments, file not found, etc.)
+.SH SECURITY
+dpino follows security best practices:
+.IP \(bu 4
+All filenames are sanitized before use
+.IP \(bu 4
+No absolute path overwrites without explicit confirmation
+.IP \(bu 4
+Desktop entries and icons are only installed to XDG directories
+.IP \(bu 4
+Temporary directories are used for extraction
+.IP \(bu 4
+Extracted binaries are never executed
+.PP
+When installing system-wide (without \fB\-\-user\fR), root privileges are required. Always review packages before installation.
+.SH SEE ALSO
+.BR update-desktop-database (1),
+.BR ar (1),
+.BR tar (1)
+.PP
+Debian package format documentation:
+.br
+https://www.debian.org/doc/debian-policy/ch-controlfields.html
+.PP
+AppImage specification:
+.br
+https://docs.appimage.org/
+.PP
+Freedesktop Desktop Entry specification:
+.br
+https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
+.PP
+XDG Base Directory specification:
+.br
+https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+.SH BUGS
+Report bugs at the project repository:
+.br
+https://github.com/abdou-da0wew/dpino/issues
+.SH AUTHOR
+Abdou <aabdou911aydev@gmail.com>
+.SH LICENSE
+MIT OR Apache-2.0
+.SH VERSION
+0.1.0

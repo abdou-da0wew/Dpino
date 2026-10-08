@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=dpino
+Comment=Rust-powered package metadata extractor + desktop entry installer + browser
+Exec=/usr/bin/dpino
+Icon=dpino
+Terminal=true
+Type=Application
+Categories=Utility;Development;
+StartupNotify=true
+

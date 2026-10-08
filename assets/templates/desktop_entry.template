@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name={{NAME}}
+Exec={{EXEC}}
+Icon={{ICON}}
+Comment={{COMMENT}}
+Categories={{CATEGORIES}}
+MimeType={{MIMETYPES}}
+Terminal={{TERMINAL}}
+
